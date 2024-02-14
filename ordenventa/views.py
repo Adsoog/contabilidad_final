@@ -5,7 +5,10 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.views import View
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
-from .forms import ItemOrdenVentaForm, OrdenVentaForm, MassItemOrdenVentaForm
+from .forms import ItemOrdenVentaForm, OrdenVentaForm
+from openpyxl import load_workbook
+import openpyxl
+import csv
 
 
 class OrdenVentaCRUDView(View):
@@ -55,38 +58,51 @@ class OrdenVentaCRUDView(View):
             )
 
 
-def create_item_ordenventa(request, ordenventa_id):
-    ordenventa = get_object_or_404(OrdenVenta, pk=ordenventa_id)
+def agregar_item_orden_venta(request, ordenventa_id):
+    # Obtén la instancia de OrdenVenta
+    orden_venta = OrdenVenta.objects.get(pk=ordenventa_id)
 
     if request.method == "POST":
-        form = MassItemOrdenVentaForm(request.POST)
+        form = ItemOrdenVentaForm(request.POST)
         if form.is_valid():
-            items_data = form.cleaned_data["items_data"].split("\n")
+            form.save(commit=False)
 
-            items_to_create = []
-            for data in items_data:
-                item_data = data.split("\t")
-                if len(item_data) == 4:
-                    nro_articulo, cantidad, precio_bruto, total_bruto = item_data
-                    item = ItemOrdenVenta(
-                        nro_articulo=nro_articulo,
-                        cantidad=cantidad,
-                        precio_bruto=precio_bruto,
-                        total_bruto=total_bruto,
-                        ordenventa=ordenventa,
-                    )
-                    items_to_create.append(item)
+            # Procesar archivo Excel
+            if "archivo_excel" in request.FILES:
+                archivo_excel = request.FILES["archivo_excel"]
+                procesar_datos_desde_excel(archivo_excel, orden_venta)
 
-            # Usar bulk_create para insertar los ítems de manera eficiente
-            ItemOrdenVenta.objects.bulk_create(items_to_create)
+            # Continuar con el procesamiento del formulario y la redirección
+            form.save()
 
-            return redirect("ordenventa-crud")  # O redirige a donde desees
+            # Puedes redirigir a otra página o hacer lo que necesites después de guardar
+            return redirect("nombre_de_la_vista")
     else:
-        form = MassItemOrdenVentaForm()
+        form = ItemOrdenVentaForm()
 
     return render(
-        request, "crear_item_ordenventa.html", {"form": form, "ordenventa": ordenventa}
+        request, "tu_template.html", {"form": form, "orden_venta": orden_venta}
     )
+
+
+def procesar_datos_desde_excel(archivo_excel, orden_venta):
+    # Abre el archivo Excel
+    wb = openpyxl.load_workbook(archivo_excel)
+    sheet = wb.active
+
+    # Itera sobre las filas del archivo Excel (empezando desde la segunda fila, suponiendo que la primera fila es encabezado)
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        # Crea una instancia de ItemOrdenVenta con los datos de la fila
+        item_orden_venta = ItemOrdenVenta(
+            ordenventa=orden_venta,
+            nro_articulo=row[0],
+            cantidad=row[1],
+            precio_bruto=row[2],
+            total_bruto=row[3],
+        )
+
+        # Guarda el nuevo item en la base de datos
+        item_orden_venta.save()
 
 
 # Vistas para OrdenVenta

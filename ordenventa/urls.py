@@ -5,7 +5,7 @@ from .views import (
     ListaItemsOrdenVenta,
     DetalleItemOrdenVenta,
     OrdenVentaCRUDView,
-    create_item_ordenventa,
+    agregar_item_orden_venta,
 )
 
 urlpatterns = [
@@ -25,9 +25,9 @@ urlpatterns = [
     ),
     path("", OrdenVentaCRUDView.as_view(), name="ordenventa-crud"),
     path(
-        "crear-item-ordenventa/<int:ordenventa_id>/",
-        create_item_ordenventa,
-        name="crear-item-ordenventa",
+        "agregar_item_orden_venta/<int:ordenventa_id>/",
+        agregar_item_orden_venta,
+        name="agregar_item_orden_venta",
     ),
     # path(
     #     "ordenventa/<int:pk>/", OrdenVentaDetailView.as_view(), name="ordenventa-detail"

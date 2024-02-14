@@ -21,7 +21,7 @@
                 {{ orden_venta.codigosap }} - {{ orden_venta.proyecto }}
                 (<a href="{% url 'ordenventa-crud' %}?action=edit&edit={{ orden_venta.id }}">Editar</a>)
                 (<a href="{% url 'ordenventa-crud' %}?action=delete&delete={{ orden_venta.id }}">Eliminar</a>)
-                (<a href="{% url 'crear-item-ordenventa' ordenventa_id=orden_venta.id %}">Crear ítem</a>)
+                (<a href="{% url 'agregar_item_orden_venta' ordenventa_id=orden_venta.id %}">Crear ítem</a>)
             </li>
         {% endfor %}
     </ul>
